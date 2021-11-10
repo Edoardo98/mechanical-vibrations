@@ -1,0 +1,52 @@
+%progetto Mignottone
+close all
+clear 
+clc
+
+%Variable declaration 
+m=171.0;                        %Engine mass [kg]
+m_pin=(91.3)/1000;              %Piston Pin weight [kg]
+m_cr=(346.8)/1000;              %Con-rod mass [kg]
+m_p=(311.2)/1000;               %Piston mass with pin and elastic ring [kg]
+l=(129.2)/1000;                 %Conrod lenght [m]
+l_g =(1/3)*(129.2)/1000;        %Conrod COG relative to conrod head [m]
+r=43/1000;                      %Crank radius (=stroke/2) [m]
+lambda=0.332817337;             %Crank radius/Conrod lenght
+m_alt=m_p+m_pin+(m_cr*(l_g/l)); %Masses in alternate motion [kg]
+a=813/1000;                     %Width of the engine as a parallepiped [m]
+b=560/1000;                     %Height of the engine as a parallepiped [m]
+c=457/1000;                     %Lenght of the engine as a parallepiped [m]
+
+%Engine parameters 
+t_end=3;                            %Acceleration time
+n_max=7450 ;                          %Rev limiter [rpm]
+n_idle=800;                           %Idling speed [rpm]
+omega_max=2*pi*n_max/60;              %Rev limiter [rad/s]
+omega_idle=2*pi*n_idle/60;            %Idling speed [rad/s]
+omega_p=(omega_max-omega_idle)/t_end; %Crankshaft acceleration [rad/s^2]
+dt=1e-5;                              %Time increase
+t=[0:dt:t_end];                       %Time vector definition
+omega=omega_p*t+omega_idle;           %Crankshaft speed [rad/s]
+n=n_idle+((n_max-n_idle)*t/t_end);    %Crankshaft speed [rpm]
+theta=0.5*omega_p*t.^2+omega_idle*t;  %Crankshaft angular position [rad]
+
+%Inertial forces
+delta=47/1000;                                 %Distance between consecutives cylinder axles [m]
+l1=l_g;                                        %Distance between crank elbow and conrod COM [m]
+l2=l-l_g;                                      %Distance between conrod COM and conrod foot [m]
+b1=(m_alt)*(omega.^2)*r*lambda;                %Force generating inertial torque [N]
+e1=(m_alt)*(omega_p)*r*(lambda/2);             %Force generating inertial torque [N]
+Jx=13887608.25;                                %Moment of inertia along x [kgmm^2]
+Jy=7444898.25;                                 %Moment of inertia along y [kgmm^2]
+Jz=12394906.5;                                 %Moment of inertia along z [kgmm^2]
+M=2*delta*(b1.*cos(2*theta)+e1.*sin(2*theta)); %Second order yaw torque [Nm]
+
+%% PLOTS
+
+figure(1)
+plot(n,M,'linewidth',1.5)
+title('Second order yaw torque on the x direction')
+xlabel('Crankshaft speed [rpm]')
+ylabel('M (yaw torque) [Nm]')
+set(gca,'fontsize',12)
+grid on
